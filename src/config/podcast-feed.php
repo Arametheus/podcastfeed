@@ -22,6 +22,8 @@ return [
         'category' => 'Technology',
         'language' => 'en-us',
         'copyright' => '2016 John Doe & Family',
+        'categories' => ['main-cat-1' => [], 'main-cat-2' => ['sub-cat1', 'sub-cat-2']],
+        'explicit' => 'No',
     ],
 
 ];
