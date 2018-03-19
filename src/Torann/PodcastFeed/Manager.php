@@ -56,12 +56,17 @@ class Manager
     private $author;
 
     /**
-     * Category of the podcast.
+     * Categories of the podcast.
+     *
+     * @var array
+     */
+    private $categories = [];
+
+    /**
+     * iTunes Explicit
      *
      * @var string
      */
-    private $category = null;
-    private $categories = [];
     private $explicit = null;
 
     /**
@@ -125,15 +130,14 @@ class Manager
         $this->link = $this->getValue($data, 'link');
         $this->image = $this->getValue($data, 'image');
         $this->author = $this->getValue($data, 'author');
+        $this->explicit = $this->getValue($data, 'explicit');
+        $this->categories = $this->getValue($data, 'categories');
 
         // Optional values
-        $this->category = $this->getValue($data, 'category');
         $this->subtitle = $this->getValue($data, 'subtitle');
         $this->language = $this->getValue($data, 'language');
         $this->email = $this->getValue($data, 'email');
         $this->copyright = $this->getValue($data, 'copyright');
-        $this->explicit = $this->getValue($data, 'explicit');
-        $this->categories = $this->getValue($data, 'categories');
     }
 
     /**
@@ -142,17 +146,19 @@ class Manager
      * @param  mixed  $data
      * @param  string $key
      *
-     * @return string
+     * @return mixed
      */
     public function getValue($data, $key)
     {
         $value = array_get($data, $key, $this->getDefault($key));
+
         if(is_array($value))
         {
             // although the itunes documentation says all characters must be escaped, if we do that with the categories then they are not recognised.
             // not sure why this is without further investigation.
             return $value;
         }
+
         return htmlspecialchars($value);
     }
 
@@ -269,27 +275,23 @@ class Manager
         }
         $channel->appendChild($itune_owner);
 
-        // Create the <itunes:category>
-        if ($this->category !== null) {
-            $category = $dom->createElement("itunes:category", $this->category);
-            $channel->appendChild($category);
-        }
-        
+        // Create the <itunes:explicit>
         $itune_explicit = $dom->createElement("itunes:explicit",$this->explicit);
         $channel->appendChild($itune_explicit);
-        
+
+        // Create the <itunes:category>
         foreach($this->categories as $category=>$subcategories) {
             $node = $channel->appendChild($dom->createElement('itunes:category'));
             $node->setAttribute("text", $category);
 
-            foreach($subcategories as $subcategory) {
+            foreach($subcategories as $subcategory)
+            {
                 $subnode = $node->appendChild($dom->createElement('itunes:category'));
                 $subnode->setAttribute("text", $subcategory);
             }
-            
             $channel->appendChild($node);
         }
-        
+
         // Create the <language>
         if ($this->language !== null) {
             $language = $dom->createElement("language", $this->language);
