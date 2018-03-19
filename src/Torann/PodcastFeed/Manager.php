@@ -61,6 +61,8 @@ class Manager
      * @var string
      */
     private $category = null;
+    private $categories = [];
+    private $explicit = null;
 
     /**
      * Language of the podcast.
@@ -130,6 +132,8 @@ class Manager
         $this->language = $this->getValue($data, 'language');
         $this->email = $this->getValue($data, 'email');
         $this->copyright = $this->getValue($data, 'copyright');
+        $this->explicit = $this->getValue($data, 'explicit');
+        $this->categories = $this->getValue($data, 'categories');
     }
 
     /**
@@ -143,7 +147,12 @@ class Manager
     public function getValue($data, $key)
     {
         $value = array_get($data, $key, $this->getDefault($key));
-
+        if(is_array($value))
+        {
+            // although the itunes documentation says all characters must be escaped, if we do that with the categories then they are not recognised.
+            // not sure why this is without further investigation.
+            return $value;
+        }
         return htmlspecialchars($value);
     }
 
@@ -265,7 +274,22 @@ class Manager
             $category = $dom->createElement("itunes:category", $this->category);
             $channel->appendChild($category);
         }
+        
+        $itune_explicit = $dom->createElement("itunes:explicit",$this->explicit);
+        $channel->appendChild($itune_explicit);
+        
+        foreach($this->categories as $category=>$subcategories) {
+            $node = $channel->appendChild($dom->createElement('itunes:category'));
+            $node->setAttribute("text", $category);
 
+            foreach($subcategories as $subcategory) {
+                $subnode = $node->appendChild($dom->createElement('itunes:category'));
+                $subnode->setAttribute("text", $subcategory);
+            }
+            
+            $channel->appendChild($node);
+        }
+        
         // Create the <language>
         if ($this->language !== null) {
             $language = $dom->createElement("language", $this->language);
