@@ -81,6 +81,13 @@ class Media
      * @var string
      */
     private $image;
+    
+    /**
+     * iTunes Explicit
+     *
+     * @var string
+     */
+    private $explicit = null;
 
     /**
      * Class constructor
@@ -99,10 +106,17 @@ class Media
         $this->duration = $this->getValue($data, 'duration');
         $this->author = $this->getValue($data, 'author');
         $this->image = $this->getValue($data, 'image');
+        $this->explicit = $this->getValue($data,'explicit');
 
         // Ensure publish date is a DateTime instance
         if (is_string($this->pubDate)) {
             $this->pubDate = new DateTime($this->pubDate);
+        }
+        
+        // Create the <itunes:explicit>
+        if($this->explicit) {
+            $itune_explicit = $dom->createElement("explicit", $this->explicit);
+            $item->appendChild($itune_explicit);
         }
     }
 
